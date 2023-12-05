@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/elewis787/boa"
 	"github.com/erdemkosk/envolve-go/internal/config"
 	"github.com/erdemkosk/envolve-go/internal/handler"
 	"github.com/erdemkosk/envolve-go/internal/tui"
@@ -12,6 +13,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 )
+
+var b tui.Bubble
 
 var rootCmd = &cobra.Command{
 	Use:     "envolve",
@@ -70,9 +73,17 @@ func Execute() {
 	loadInitialValues()
 	rootCmd.AddCommand(updateCmd)
 	rootCmd.AddCommand(SyncCmd)
+	rootCmd.AddCommand(LsCmd)
+
+	rootCmd.SetUsageFunc(boa.UsageFunc)
+	rootCmd.SetHelpFunc(boa.HelpFunc)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+}
+
+func RetriveBubbleModel() tui.Bubble {
+	return b
 }

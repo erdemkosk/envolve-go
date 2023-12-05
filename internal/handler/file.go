@@ -25,16 +25,26 @@ func GetCurrentPathAndFolder() (string, string) {
 	return path, folder
 }
 
-func CreateFolderIfDoesNotExist(homePath string) error {
-	err := os.Mkdir(homePath, 0755)
+func CreateFolderIfDoesNotExist(homePath string) {
+	_, err := os.Stat(homePath)
 
-	return err
+	if os.IsNotExist(err) {
+		err := os.Mkdir(homePath, 0755)
+
+		if err != nil {
+			fmt.Println("Create folder problem:", err)
+			return
+		}
+	}
 }
 
-func Symlink(source string, target string) error {
+func Symlink(source string, target string) {
 	err := os.Symlink(source, target)
 
-	return err
+	if err != nil {
+		fmt.Println("There is a problem with symlink:", err)
+		return
+	}
 }
 
 func CopyFile(sourceFilePath string, targetFilePath string) {
@@ -60,7 +70,7 @@ func CopyFile(sourceFilePath string, targetFilePath string) {
 
 	_, err = io.Copy(targetFile, sourceFile)
 	if err != nil {
-		fmt.Println("Dosya kopyalanamadı:", err)
+		fmt.Println("File cannot copied:", err)
 		return
 	}
 }

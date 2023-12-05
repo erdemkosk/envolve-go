@@ -38,5 +38,13 @@ func (b Bubble) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	b.viewport, cmd = b.viewport.Update(msg)
 	cmds = append(cmds, cmd)
 
+	//file picker
+
+	b.Filepicker, cmd = b.Filepicker.Update(msg)
+
+	if didSelect, path := b.Filepicker.DidSelectFile(msg); didSelect {
+		b.SelectedFile = path
+	}
+
 	return b, tea.Batch(cmds...)
 }

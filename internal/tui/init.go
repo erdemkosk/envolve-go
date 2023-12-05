@@ -10,6 +10,6 @@ func (b Bubble) Init() tea.Cmd {
 	var cmds []tea.Cmd
 
 	cmds = append(cmds, spinner.Tick)
-
+	cmds = append(cmds, b.Filepicker.Init())
 	return tea.Batch(cmds...)
 }

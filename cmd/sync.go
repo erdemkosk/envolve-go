@@ -12,8 +12,8 @@ import (
 
 var SyncCmd = &cobra.Command{
 	Use:   "sync",
-	Short: "sync bubbletea-starter to the latest version",
-	Long:  `sync bubbletea-starter to the latest version.`,
+	Short: "Backs up your current project's .env file",
+	Long:  `Backs up your current project's .env file, restores the variables from a global .env file, and creates a symbolic link to the latest environment settings.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		envolvePath := handler.GetEnvolveHomePath()
 		currentPath, currentFolderName := handler.GetCurrentPathAndFolder()
@@ -24,11 +24,8 @@ var SyncCmd = &cobra.Command{
 		handler.CreateFolderIfDoesNotExist(targetPath)
 		handler.CopyFile(currentEnvFilePath, targetEnvFilePath)
 		handler.DeleteFile(currentEnvFilePath)
-		val := handler.Symlink(targetEnvFilePath, currentEnvFilePath)
-		if val != nil {
-			fmt.Println("Sembolik link oluşturulamadı:", val)
-			return
-		}
+		handler.Symlink(targetEnvFilePath, currentEnvFilePath)
+
 		fmt.Println("Sync work with success!")
 
 		os.Exit(0)
