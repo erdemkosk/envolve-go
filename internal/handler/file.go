@@ -25,6 +25,11 @@ func GetCurrentPathAndFolder() (string, string) {
 	return path, folder
 }
 
+func GetFoldername(path string) string {
+	folder := filepath.Base(filepath.Dir(path))
+	return folder
+}
+
 func CreateFolderIfDoesNotExist(homePath string) {
 	_, err := os.Stat(homePath)
 

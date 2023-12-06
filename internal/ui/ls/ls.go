@@ -11,6 +11,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/erdemkosk/envolve-go/internal/handler"
 )
 
 var (
@@ -34,6 +35,7 @@ type Model struct {
 	quitting     bool
 	err          error
 	ready        bool
+	folderName   string
 }
 
 type clearErrorMsg struct{}
@@ -60,12 +62,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.quitting = true
 			return m, tea.Quit
 		case "j", "down":
-			// Aşağı kaydırma işlemi
-
 			m.Viewport.YOffset = m.Viewport.YOffset + 1
 
 		case "k", "up":
-			// Yukarı kaydırma işlemi
 			if m.Viewport.YOffset > 0 {
 				m.Viewport.YOffset = m.Viewport.YOffset - 1
 			}
@@ -80,19 +79,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		verticalMarginHeight := headerHeight + footerHeight
 
 		if !m.ready {
-			// Since this program is using the full size of the viewport we
-			// need to wait until we've received the window dimensions before
-			// we can initialize the viewport. The initial dimensions come in
-			// quickly, though asynchronously, which is why we wait for them
-			// here.
 			m.Viewport = viewport.New(msg.Width, msg.Height-verticalMarginHeight)
 			m.Viewport.YPosition = headerHeight
 			m.ready = true
-
-			// This is only necessary for high performance rendering, which in
-			// most cases you won't need.
-			//
-			// Render the viewport one line below the header.
 			m.Viewport.YPosition = headerHeight + 1
 		} else {
 			m.Viewport.Width = msg.Width
@@ -105,15 +94,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.Filepicker, cmd = m.Filepicker.Update(msg)
 
 	if didSelect, path := m.Filepicker.DidSelectFile(msg); didSelect {
-		// Dosya seçildiğinde içeriğini oku ve Model içine koy
+		m.folderName = handler.GetFoldername(path)
 		content, err := ioutil.ReadFile(path)
 		if err != nil {
 			m.err = err
 			m.SelectedFile = ""
 			return m, tea.Batch(cmd, clearErrorAfter(2*time.Second))
 		}
-		m.SelectedFile = string(content)
 
+		m.SelectedFile = stylizeLines(string(content))
 	}
 
 	if didSelect, path := m.Filepicker.DidSelectDisabledFile(msg); didSelect {
@@ -156,8 +145,11 @@ func NewModel(filePicker filepicker.Model) Model {
 	}
 }
 
+//STYLE//
+
 func (m Model) headerView() string {
-	title := titleStyle.Render("Mr. Pager")
+	styled := lipgloss.NewStyle().Foreground(lipgloss.Color("205")).Render(m.folderName)
+	title := titleStyle.Render(styled + "/.env")
 	line := strings.Repeat("─", max(0, m.Viewport.Width-lipgloss.Width(title)))
 	return lipgloss.JoinHorizontal(lipgloss.Center, title, line)
 }
@@ -167,3 +159,25 @@ func (m Model) footerView() string {
 	line := strings.Repeat("─", max(0, m.Viewport.Width-lipgloss.Width(info)))
 	return lipgloss.JoinHorizontal(lipgloss.Center, line, info)
 }
+
+func stylizeLines(content string) string {
+	lines := strings.Split(content, "\n")
+	var sb strings.Builder
+
+	for _, line := range lines {
+		if strings.Contains(line, "=") {
+			idx := strings.Index(line, "=")
+			firstPart := line[:idx]
+			secondPart := line[idx:]
+
+			styledFirstPart := lipgloss.NewStyle().Foreground(lipgloss.Color("205")).Render(firstPart)
+
+			line = styledFirstPart + secondPart
+		}
+		sb.WriteString(line + "\n")
+	}
+
+	return sb.String()
+}
+
+//

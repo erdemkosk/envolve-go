@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/charmbracelet/bubbles/filepicker"
@@ -19,15 +18,16 @@ var LsCmd = &cobra.Command{
 		fp := filepicker.New()
 		fp.AllowedTypes = []string{".env"}
 		fp.ShowHidden = true
+		fp.FileAllowed = true
 
 		fp.CurrentDirectory = handler.GetEnvolveHomePath()
 
 		m := ls.NewModel(fp)
 
-		tm, _ := tea.NewProgram(&m, tea.WithOutput(os.Stderr)).Run()
-		mm := tm.(ls.Model)
+		tea.NewProgram(&m, tea.WithOutput(os.Stderr)).Run()
+		//mm := tm.(ls.Model)
 
-		fmt.Println("\n  You selected: " + m.Filepicker.Styles.Selected.Render(mm.SelectedFile) + "\n")
+		//fmt.Println("\n  You selected: " + m.Filepicker.Styles.Selected.Render(mm.SelectedFile) + "\n")
 
 		os.Exit(0)
 	},
